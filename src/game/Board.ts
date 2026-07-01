@@ -90,7 +90,16 @@ export class Board {
     return { color, count };
   }
 
-  /** Destination for a tap on `from`: first same-top-color column to the right (wrapping). */
+  /** True when a column has a separator exposed on top (empty band) — a wildcard
+   *  landing spot that accepts a run of any color. */
+  isWildcardTarget(c: number): boolean {
+    const col = this.columns[c];
+    return col.length > 0 && col[0].kind === 'sep';
+  }
+
+  /** Destination for a tap on `from`, scanning right (wrapping):
+   *  1) nearest same-color top run, else
+   *  2) nearest empty separator (accepts any color). */
   findFlyTarget(from: number): number | null {
     const run = this.topRun(from);
     if (!run) return null;
@@ -99,6 +108,10 @@ export class Board {
       const c = (from + step) % n;
       const r = this.topRun(c);
       if (r && r.color === run.color) return c;
+    }
+    for (let step = 1; step < n; step++) {
+      const c = (from + step) % n;
+      if (this.isWildcardTarget(c)) return c;
     }
     return null;
   }

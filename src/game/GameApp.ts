@@ -132,7 +132,9 @@ export class GameApp {
     for (const [id, slot] of idx) {
       if (slot.cell.kind !== 'sep') continue;
       const m = this.cellMeshes.get(id);
-      if (m) updateSep(m, this.board.sepStatusAt(slot.col, slot.row));
+      // A separator exposed at the top of its column (row 0) has an empty band and
+      // accepts a run of any color — flag it as a wildcard target.
+      if (m) updateSep(m, this.board.sepStatusAt(slot.col, slot.row), slot.row === 0);
     }
   }
 

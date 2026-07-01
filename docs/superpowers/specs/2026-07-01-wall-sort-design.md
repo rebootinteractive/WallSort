@@ -46,3 +46,7 @@ color-count-multiple-of-10 rule so you can't save an unsolvable level) · settin
   resolve correctly, and clears cascade.
 - **Targets are all 10 in v1**, which is what makes "each color a multiple of 10" the
   solvability rule.
+- **Empty (wildcard) separators:** a separator exposed at the top of a column (its band
+  emptied) accepts a run of *any* color. Fly targeting prefers the nearest same-color
+  stack and only falls back to the nearest empty separator when no color match exists,
+  so existing levels play unchanged. Wildcard separators render teal.

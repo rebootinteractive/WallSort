@@ -13,6 +13,7 @@ const CORNER = 0.16;
 
 export const SEP_INACTIVE = 0x2b3142;
 export const SEP_ACTIVE = 0x49527d;
+export const SEP_WILD = 0x2bb6c4; // empty separator that accepts any color
 
 export function colX(c: number, cols: number): number {
   return (c - (cols - 1) / 2) * PITCH;
@@ -121,13 +122,19 @@ export function makeSep(id: number, target: number): CellMesh {
   return { id, kind: 'sep', group, materials, geometries, target, slabMat, spriteMat };
 }
 
-export function updateSep(m: CellMesh, status: SepStatus): void {
+export function updateSep(m: CellMesh, status: SepStatus, wildcard = false): void {
   if (!m.spriteMat || !m.slabMat) return;
   const shown = status.active ? status.remaining : (m.target ?? 10);
   m.spriteMat.map = numberTexture(shown);
   m.spriteMat.needsUpdate = true;
-  m.slabMat.color.setHex(status.active ? SEP_ACTIVE : SEP_INACTIVE);
-  m.spriteMat.opacity = status.active ? 1 : 0.5;
+  if (wildcard) {
+    // Exposed empty separator: highlight it as an "accepts anything" slot.
+    m.slabMat.color.setHex(SEP_WILD);
+    m.spriteMat.opacity = 1;
+  } else {
+    m.slabMat.color.setHex(status.active ? SEP_ACTIVE : SEP_INACTIVE);
+    m.spriteMat.opacity = status.active ? 1 : 0.5;
+  }
 }
 
 export function disposeCellMesh(m: CellMesh): void {
