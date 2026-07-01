@@ -57,7 +57,14 @@ export class Runner {
 
   tick(dt: number): void {
     if (this.anims.length === 0) return;
-    this.anims = this.anims.filter((a) => !a.update(dt));
+    // Snapshot: an anim's onDone may add new anims (e.g. a fly finishing spawns
+    // the match pop + collapse). Rebuilding into a fresh array keeps those —
+    // filtering the live array would drop anything pushed during update().
+    const current = this.anims;
+    this.anims = [];
+    for (const a of current) {
+      if (!a.update(dt)) this.anims.push(a);
+    }
   }
 
   clear(): void {
