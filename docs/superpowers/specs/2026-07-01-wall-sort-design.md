@@ -50,8 +50,7 @@ color-count-multiple-of-10 rule so you can't save an unsolvable level) · settin
   emptied) accepts a run of *any* color. Fly targeting prefers the nearest same-color
   stack and only falls back to the nearest empty separator when no color match exists,
   so existing levels play unchanged. Wildcard separators render teal.
-- **Merge caps at 10:** a same-color group never grows past the target. On a tap, only
-  enough tiles fly to fill the destination run to 10; any excess stays in the source
-  column. A same-color stack already at 10 has no room and is skipped as a target. This
-  makes the earlier "overshoot" case unreachable through play (it remains only as a
-  safety net for hand-authored bands larger than 10).
+- **A tap moves the whole run.** All of the tapped same-color run flies to the
+  destination — tiles are never left behind in the source. Only the *clear* is capped at
+  the target: when a band reaches ≥ 10 of one color, exactly 10 (nearest the separator)
+  match, and any overshoot stays on the destination.

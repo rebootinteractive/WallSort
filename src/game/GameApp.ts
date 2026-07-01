@@ -157,16 +157,15 @@ export class GameApp {
       if (this.board.columns[col]?.length) this.shake(col);
       return;
     }
-    const plan = this.board.movePlan(col);
-    if (!plan) {
+    const to = this.board.findFlyTarget(col);
+    if (to === null) {
       this.shake(col);
       return;
     }
-    const { to, count } = plan;
 
-    // Simulate the (capped) landing WITHOUT resolving, to get intermediate positions.
+    // Simulate the landing WITHOUT resolving, to get intermediate positions.
     const sim = this.board.columns.map((c) => c.slice());
-    const moved = sim[col].splice(0, count);
+    const moved = sim[col].splice(0, run.count);
     sim[to].unshift(...moved);
     const idx1 = this.computeIndex(sim);
     const movedIds = moved.map((m) => m.id);

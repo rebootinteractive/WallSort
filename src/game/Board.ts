@@ -1,5 +1,4 @@
 import type { ColorKey, LevelData } from '../shared/types';
-import { DEFAULT_TARGET } from '../shared/types';
 
 // Board holds the pure logical state of a wall. No three.js in here — the view
 // reconciles against this model. Every cell has a stable numeric `id` so the
@@ -99,7 +98,7 @@ export class Board {
   }
 
   /** Destination for a tap on `from`, scanning right (wrapping):
-   *  1) nearest same-color top run that still has room (< target), else
+   *  1) nearest same-color top run, else
    *  2) nearest empty separator (accepts any color). */
   findFlyTarget(from: number): number | null {
     const run = this.topRun(from);
@@ -108,7 +107,7 @@ export class Board {
     for (let step = 1; step < n; step++) {
       const c = (from + step) % n;
       const r = this.topRun(c);
-      if (r && r.color === run.color && r.count < DEFAULT_TARGET) return c;
+      if (r && r.color === run.color) return c;
     }
     for (let step = 1; step < n; step++) {
       const c = (from + step) % n;
@@ -117,36 +116,23 @@ export class Board {
     return null;
   }
 
-  /** Plan a tap: destination + how many tiles actually move. A same-color group
-   *  merges to at most DEFAULT_TARGET, so only enough tiles fly to fill the
-   *  destination run to 10 — any excess stays put in the source. Null if illegal. */
-  movePlan(from: number): { to: number; count: number } | null {
-    const run = this.topRun(from);
-    if (!run) return null;
-    const to = this.findFlyTarget(from);
-    if (to === null) return null;
-    const destTop = this.topRun(to);
-    const destSame = destTop && destTop.color === run.color ? destTop.count : 0;
-    const room = DEFAULT_TARGET - destSame;
-    const count = Math.min(run.count, room);
-    return count > 0 ? { to, count } : null;
-  }
-
   /** Perform a tap: fly the top run to its target, then resolve matches. Records undo. */
   applyTap(from: number): TapOutcome {
     const run = this.topRun(from);
     if (!run) return { kind: 'noop', col: from };
-    const plan = this.movePlan(from);
-    if (!plan) return { kind: 'invalid', col: from };
+    const to = this.findFlyTarget(from);
+    if (to === null) return { kind: 'invalid', col: from };
 
     this.pushHistory();
 
-    const moved = this.columns[from].splice(0, plan.count) as BoardTile[];
+    // The whole tapped run moves; only a completed group of `target` clears (any
+    // overshoot beyond the target stays on the destination — see resolveAll).
+    const moved = this.columns[from].splice(0, run.count) as BoardTile[];
     const movedIds = moved.map((t) => t.id);
-    this.columns[plan.to].unshift(...moved);
+    this.columns[to].unshift(...moved);
 
     const clears = this.resolveAll();
-    return { kind: 'move', from, to: plan.to, color: run.color, movedIds, clears };
+    return { kind: 'move', from, to, color: run.color, movedIds, clears };
   }
 
   /** Tiles directly above a separator, up to the next separator or the top. */
